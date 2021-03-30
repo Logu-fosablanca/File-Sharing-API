@@ -29,10 +29,10 @@ router.post('/', (req, res) => {
         if (err) {
             return res.status(500).send({ error: err.message });
         }
-        //Validate Request
-        // if (!req.file) {
-        //     return res.json({ error: " All Fields Are required " });
-        // }
+        // Validate Request
+        if (!req.file) {
+            return res.json({ error: " All Fields Are required " });
+        }
 
       
     //Store into DB        

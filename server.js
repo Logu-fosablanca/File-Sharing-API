@@ -13,6 +13,8 @@ const router = require('./routes/files');
 
 app.use('/api/files',require('./routes/files'));
 
+// app.use('/files',require('./routes/show'))
+
 app.listen(PORT,()=> {
     console.log(`Listening On Port ${PORT}`)
 })
