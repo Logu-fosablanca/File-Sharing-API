@@ -30,11 +30,9 @@ router.post('/', (req, res) => {
             return res.status(500).send({ error: err.message });
         }
         // Validate Request
-        if (!req.file) {
-            return res.json({ error: " All Fields Are required " });
-        }
-
-      
+        // if (!req.file) {
+        //     return res.json({ error: " All Fields Are required " });
+        // }
     //Store into DB        
         //Data From the multer Storage Library
     const file = new File({
@@ -49,7 +47,7 @@ router.post('/', (req, res) => {
     return res.json({file:`${process.env.APP_BASE_URL}/files/${response.uuid}`});
     //HTTP Local Host 
     });
-    //Response and link
+ 
 });
 
 module.exports = router;

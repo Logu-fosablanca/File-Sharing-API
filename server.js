@@ -13,18 +13,14 @@ app.use(express.static('public'));
 const connectDB = require('./config/db');
 connectDB();
 
-// Routes
-
-
-// download Link
 // const router = require('./routes/files');
 
 app.use('/api/files',require('./routes/files'));
 // Download Page
-app.use('/files',require('./routes/show'));
+app.use('/files/',require('./routes/show'));
 //files Dpownload
-app.use('/files/download',require('./routes/download'));
+app.use('/files/download/',require('./routes/download'));
 
 app.listen(PORT,()=> {
     console.log(`Listening On Port ${PORT}`)
-})
+});
