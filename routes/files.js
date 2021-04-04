@@ -50,4 +50,40 @@ router.post('/', (req, res) => {
  
 });
 
+router.post('/send',async (req,res)=>{
+    // console.log(req.body);
+    // return res.send({});
+    
+    const {uuid , emailTo,emailFrom }= req.body;
+       // Validate Request 
+    if(!uuid || !emailFrom || !emailTo){
+        return res.status(422).send({error: "All fields are required"});
+        }
+    //Get Data From Database 
+    const file = await File.findOne({uuid : uuid});
+    if(file.sender){
+        return res.status(422).send({ error: "Email Already Sent " });
+    }
+
+    file.sender = emailFrom ;
+    file.reciever = emailTo;
+    const response = await file.save();
+
+    //Send Email
+    const sendMail = require('../services/emailService');
+    sendMail({
+        from : emailFrom,
+        to : emailTo,
+        subject: 'Sharelux File Transfer ',
+        text: `${emailFrom} shared a file with you`,
+        html : require('../services/html')({
+            emailFrom : emailFrom,
+            downloadLink: `${process.env.APP_BASE_URL}/files/${file.uuid}`,
+            size: parseInt(file.size / 1000) + ' KB',
+            expires: '12 hours'
+        })
+    })
+    
+});
+
 module.exports = router;
