@@ -1,88 +1,65 @@
 const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
-const File = require('../models/file')
-const { v4 : uuidv4 }= require('uuid');
+const File = require('../models/file');
+const { v4: uuidv4 } = require('uuid');
 
-
-//We Are Using this Software Library called mutler to Upload the files into the data base 
 let storage = multer.diskStorage({
-    //Finding the Destination
     destination: (req, file, cb) => cb(null, 'uploads/'),
-    //File Name for the Program
     filename: (req, file, cb) => {
-        const uniquename =`${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
-        cb(null, uniquename);
+        const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+        cb(null, uniqueName)
     },
-
 });
 
-let upload = multer({
-    storage,
-    limit: { fileSize: 100000 * 100 },//maximum Size of 10MB
-}).single('myfile');
+let upload = multer({ storage, limits: { fileSize: 1000000 * 100 }, }).single('myfile'); //100mb
 
-
-router.post('/', (req, res) => {    
-    //Store File
+router.post('/', (req, res) => {
     upload(req, res, async (err) => {
         if (err) {
             return res.status(500).send({ error: err.message });
         }
-        // Validate Request
-        // if (!req.file) {
-        //     return res.json({ error: " All Fields Are required " });
-        // }
-    //Store into DB        
-        //Data From the multer Storage Library
-    const file = new File({
-        filename: req.file.filename,
-        uuid: uuidv4(),
-        path: req.file.path,
-        size : req.file.size
-
+        const file = new File({
+            filename: req.file.filename,
+            uuid: uuidv4(),
+            path: req.file.path,
+            size: req.file.size
+        });
+        const response = await file.save();
+        res.json({ file: `${process.env.APP_BASE_URL}/files/${response.uuid}` });
     });
-
-    const response = await file.save();
-    return res.json({file:`${process.env.APP_BASE_URL}/files/${response.uuid}`});
-    //HTTP Local Host 
-    });
- 
 });
 
-router.post('/send',async (req,res)=>{
-    // console.log(req.body);
-    // return res.send({});
-    
-    const {uuid , emailTo,emailFrom }= req.body;
-       // Validate Request 
-    if(!uuid || !emailFrom || !emailTo){
-        return res.status(422).send({error: "All fields are required"});
-        }
-    //Get Data From Database 
-    const file = await File.findOne({uuid : uuid});
-    if(file.sender){
-        return res.status(422).send({ error: "Email Already Sent " });
+router.post('/send', async (req, res) => {
+    const { uuid, emailTo, emailFrom, expiresIn } = req.body;
+    if (!uuid || !emailTo || !emailFrom) {
+        return res.status(422).send({ error: 'All fields are required except expiry.' });
     }
+    // Get data from db 
+  
+        const file = await File.findOne({ uuid: uuid });
+        if (file.sender) {
+            return res.status(422).send({ error: 'Email already sent once.' });
+        }
+        file.sender = emailFrom;
+        file.receiver = emailTo;
+        const response = await file.save();
+        // send mail
+        const sendMail = require('../services/emailService');
+        sendMail({
+            from: emailFrom,
+            to: emailTo,
+            subject: 'Share Lux file sharing',
+            text: `${emailFrom} shared a file with you.`,
+            html: require('../services/emailTemplate')({
+                emailFrom,
+                downloadLink: `${process.env.APP_BASE_URL}/files/${file.uuid}?source=email`,
+                size: parseInt(file.size / 1000) + ' KB',
+                expires: '24 hours'
+            })
 
-    file.sender = emailFrom ;
-    file.reciever = emailTo;
-    const response = await file.save();
-
-    //Send Email
-    const sendMail = require('../services/emailService');
-    sendMail({
-        from : emailFrom,
-        to : emailTo,
-        subject: 'Sharelux File Transfer ',
-        text: `${emailFrom} shared a file with you`,
-        html : require('../services/html')({
-            emailFrom : emailFrom,
-            downloadLink: `${process.env.APP_BASE_URL}/files/${file.uuid}`,
-            size: parseInt(file.size / 1000) + ' KB',
-            expires: '12 hours'
+    
         })
-    })
     
 });
 
