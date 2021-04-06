@@ -60,6 +60,8 @@ router.post('/send', async (req, res) => {
 
     
         })
+
+    return res.send({ sucess: true})
     
 });
 
