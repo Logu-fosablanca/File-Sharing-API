@@ -1,5 +1,5 @@
 const nodemailer = require("nodemailer");
-module.exports =  ({ from, to, subject, text, html }) => {
+module.exports = async  ({ from, to, subject, text, html }) => {
     let transporter = nodemailer.createTransport(
         {host : 'smtp.gmail.com',
         service: 'gmail',
@@ -17,13 +17,14 @@ module.exports =  ({ from, to, subject, text, html }) => {
     }  
 
     // send mail with defined transport object
-    transporter.sendMail(mailOptions, function (err, data) {
+   await transporter.sendMail(mailOptions, function (err, data) {
         if (err) {
             console.log('Error Occurs');
             console.log(err)
         } else {
             console.log('Email sent successfully');
         }
+
     });
 
 }
