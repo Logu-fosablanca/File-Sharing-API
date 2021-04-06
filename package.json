@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/Logu-fosablanca/File-Sharing-API#readme",
   "dependencies": {
+    "config": "^3.3.6",
+    "config.json": "^0.0.4",
     "dotenv": "^8.2.0",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
